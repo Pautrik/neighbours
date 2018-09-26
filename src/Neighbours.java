@@ -47,15 +47,17 @@ public class Neighbours extends Application {
     // (i.e move unsatisfied) approx each 1/60 sec.
     void updateWorld() {
         // % of surrounding neighbours that are like me
-        final double threshold = 0.7;
+        final double threshold = 0.3;
         ArrayList<Point> noneLocations = new ArrayList<>();
         ArrayList<Point> dissatisfiedLocations = new ArrayList<>();
 
         setNoneAndDissatisfiedActorLocations(noneLocations, dissatisfiedLocations, threshold);
-        if(dissatisfiedLocations.size() != 0)
+        if(dissatisfiedLocations.size() != 0) {
             relocateDissatisfied(noneLocations, dissatisfiedLocations);
-        else
+        }
+        else {
             System.out.println("Everybody is satisfied");
+        }
     }
 
     // This method initializes the world variable with a random distribution of Actors
@@ -132,23 +134,36 @@ public class Neighbours extends Application {
             for(int yOffset = -1; yOffset <= 1; yOffset++) {
                 x = p.x + xOffset;
                 y = p.y + yOffset;
-                if(xOffset == 0 && yOffset == 0 || x < 0 || x >= world[0].length || y < 0 || y >= world.length)
+                if(xOffset == 0 && yOffset == 0 || x < 0 || x >= world[0].length || y < 0 || y >= world.length) {
                     continue;
-                else if(world[y][x] == Actor.BLUE)
+                }
+                else if(world[y][x] == Actor.BLUE) {
                     nBlue++;
-                else if(world[y][x] == Actor.RED)
+                }
+                else if(world[y][x] == Actor.RED) {
                     nRed++;
+                }
             }
         }
 
-        int quota;
         if(nBlue + nRed > 0) { // Prevents divided by zero
-            if (world[p.y][p.x] == Actor.RED)
-                quota = nBlue / (nBlue + nRed);
-            else
-                quota = nRed / (nBlue + nRed);
-
-            return quota > threshold;
+            double quota;
+            if (world[p.y][p.x] == Actor.RED) {
+                quota = (double)nRed / (double)(nBlue + nRed);
+            }
+            else {
+                quota = (double)nBlue / (double)(nBlue + nRed);
+            }
+            if (quota < threshold) {
+                System.out.println(
+                        "Color: " + (world[p.y][p.x] == Actor.RED ? "red" : "blue")
+                                + " x: " + p.x
+                                + " y: " + p.y
+                                + " blue: " + nBlue
+                                + " red: " + nRed
+                                + " quota: " + quota);
+            }
+            return quota < threshold;
         }
         else {
             return false;
