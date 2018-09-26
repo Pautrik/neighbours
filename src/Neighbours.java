@@ -163,6 +163,8 @@ public class Neighbours extends Application {
         int noneIndex;
         Point nonePoint;
         for(Point dissatisfied : dissatisfiedLocations) {
+            if(noneLocations.size() <= 0)
+                break;
             noneIndex = ThreadLocalRandom.current().nextInt(noneLocations.size());
             nonePoint = noneLocations.get(noneIndex);
 
