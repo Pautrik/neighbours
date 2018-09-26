@@ -43,7 +43,6 @@ public class Neighbours extends Application {
     // Below is the *only* accepted instance variable (i.e. variables outside any method)
     // This variable may *only* be used in methods init() and updateWorld()
     Actor[][] world;              // The world is a square matrix of Actors
-
     // This is the method called by the timer to update the world
     // (i.e move unsatisfied) approx each 1/60 sec.
     void updateWorld() {
@@ -67,7 +66,7 @@ public class Neighbours extends Application {
         //test();    // <---------------- Uncomment to TEST!
 
         // %-distribution of RED and BLUE
-        double[] dist = {0.45, 0.45};
+        double[] dist = {0.25, 0.25};
         // Number of locations (places) in world (square)
         int nLocations = 900;
 
@@ -102,8 +101,8 @@ public class Neighbours extends Application {
              x = ThreadLocalRandom.current().nextInt(sideLength);
              y = ThreadLocalRandom.current().nextInt(sideLength);
 
-             if(world[x][y] == Actor.NONE) {
-                 world[x][y] = color;
+             if(world[y][x] == Actor.NONE) {
+                 world[y][x] = color;
                  nActors--;
              }
         }
@@ -111,10 +110,10 @@ public class Neighbours extends Application {
 
 
     private void setNoneAndDissatisfiedActorLocations(ArrayList<Point> noneLocations, ArrayList<Point> dissatisfiedLocations, double threshold) {
-        for(int x = 0; x < world.length; x++) {
-            for(int y = 0; y < world[0].length; y++) {
+        for(int y = 0; y < world.length; y++) {
+            for(int x = 0; x < world[0].length; x++) {
                 Point point = new Point(x, y);
-                if(world[x][y] == Actor.NONE) {
+                if(world[y][x] == Actor.NONE) {
                     noneLocations.add(point);
                 }
                 else if(isDissatisfied(point, threshold)) {
@@ -133,23 +132,23 @@ public class Neighbours extends Application {
             for(int yOffset = -1; yOffset <= 1; yOffset++) {
                 x = p.x + xOffset;
                 y = p.y + yOffset;
-                if(xOffset == 0 && yOffset == 0 || x < 0 || x >= world.length || y < 0 || y >= world[0].length)
+                if(xOffset == 0 && yOffset == 0 || x < 0 || x >= world[0].length || y < 0 || y >= world.length)
                     continue;
-                else if(world[x][y] == Actor.BLUE)
+                else if(world[y][x] == Actor.BLUE)
                     nBlue++;
-                else if(world[x][y] == Actor.RED)
+                else if(world[y][x] == Actor.RED)
                     nRed++;
             }
         }
 
         int quota;
-        if(nBlue + nRed > 0) {
-            if (world[p.x][p.y] == Actor.BLUE)
+        if(nBlue + nRed > 0) { // Prevents divided by zero
+            if (world[p.y][p.x] == Actor.RED)
                 quota = nBlue / (nBlue + nRed);
             else
                 quota = nRed / (nBlue + nRed);
 
-            return quota >= threshold;
+            return quota > threshold;
         }
         else {
             return false;
@@ -163,8 +162,8 @@ public class Neighbours extends Application {
             noneIndex = ThreadLocalRandom.current().nextInt(noneLocations.size());
             nonePoint = noneLocations.get(noneIndex);
 
-            world[nonePoint.x][nonePoint.y] = world[dissatisfied.x][dissatisfied.y];
-            world[dissatisfied.x][dissatisfied.y] = Actor.NONE;
+            world[nonePoint.y][nonePoint.x] = world[dissatisfied.y][dissatisfied.x];
+            world[dissatisfied.y][dissatisfied.x] = Actor.NONE;
             noneLocations.remove(noneIndex);
         }
     }
