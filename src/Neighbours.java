@@ -47,10 +47,11 @@ public class Neighbours extends Application {
     // (i.e move unsatisfied) approx each 1/60 sec.
     void updateWorld() {
         // % of surrounding neighbours that are like me
-        final double threshold = 0.3;
+        final double threshold = 0.7;
         ArrayList<Point> noneLocations = new ArrayList<>();
         ArrayList<Point> dissatisfiedLocations = new ArrayList<>();
 
+        //Sends in Lists by reference to achieve multiple returns
         setNoneAndDissatisfiedActorLocations(noneLocations, dissatisfiedLocations, threshold);
         if(dissatisfiedLocations.size() != 0) {
             relocateDissatisfied(noneLocations, dissatisfiedLocations);
@@ -125,12 +126,14 @@ public class Neighbours extends Application {
     private boolean isDissatisfied(Point p, double threshold) {
         int nBlue = 0;
         int nRed = 0;
-        
+
         int x, y;
         for(int xOffset = -1; xOffset <= 1; xOffset++) {
             for(int yOffset = -1; yOffset <= 1; yOffset++) {
                 x = p.x + xOffset;
                 y = p.y + yOffset;
+
+                // Makes sure we don't count the center point or accesses a point outside of the world grid
                 if(xOffset == 0 && yOffset == 0 || x < 0 || x >= world[0].length || y < 0 || y >= world.length) {
                     continue;
                 }
@@ -163,8 +166,10 @@ public class Neighbours extends Application {
         int noneIndex;
         Point nonePoint;
         for(Point dissatisfied : dissatisfiedLocations) {
+            // Only relocates as many dissatisfied points as there are empty spots
             if(noneLocations.size() <= 0)
                 break;
+
             noneIndex = ThreadLocalRandom.current().nextInt(noneLocations.size());
             nonePoint = noneLocations.get(noneIndex);
 
