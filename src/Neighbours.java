@@ -49,7 +49,14 @@ public class Neighbours extends Application {
     void updateWorld() {
         // % of surrounding neighbours that are like me
         final double threshold = 0.7;
-       // TODO
+        ArrayList<Point> noneLocations = new ArrayList<>();
+        ArrayList<Point> dissatisfiedLocations = new ArrayList<>();
+
+        setNoneAndDissatisfiedActorLocations(noneLocations, dissatisfiedLocations, threshold);
+        if(dissatisfiedLocations.size() != 0)
+            relocateDissatisfied(noneLocations, dissatisfiedLocations);
+        else
+            System.out.println("Everybody is satisfied");
     }
 
     // This method initializes the world variable with a random distribution of Actors
@@ -60,15 +67,11 @@ public class Neighbours extends Application {
         //test();    // <---------------- Uncomment to TEST!
 
         // %-distribution of RED and BLUE
-        double[] dist = {0.25, 0.25};
+        double[] dist = {0.45, 0.45};
         // Number of locations (places) in world (square)
         int nLocations = 900;
 
-        // TODO
         populateWorld(nLocations, dist);
-
-        ArrayList<Point> noneLocations, dissatisfiedLocations;
-
 
         // Should be last
         fixScreenSize(nLocations);
@@ -82,9 +85,9 @@ public class Neighbours extends Application {
     private void populateWorld(int nLocations, double[] dist) {
         int sideLength = (int)Math.sqrt(nLocations);
         world = new Actor[sideLength][sideLength];
+
         for(Actor[] dimension : world)
             Arrays.fill(dimension, Actor.NONE);
-
 
         int nRed = (int)(dist[0] * nLocations);
         int nBlue = (int)(dist[1] * nLocations);
@@ -107,21 +110,63 @@ public class Neighbours extends Application {
     }
 
 
-    private void setNoneAndDissatisfiedActorLocations(ArrayList<Point> noneLocations, ArrayList<Point> dissatisfiedLocations) {
+    private void setNoneAndDissatisfiedActorLocations(ArrayList<Point> noneLocations, ArrayList<Point> dissatisfiedLocations, double threshold) {
         for(int x = 0; x < world.length; x++) {
             for(int y = 0; y < world[0].length; y++) {
+                Point point = new Point(x, y);
                 if(world[x][y] == Actor.NONE) {
-                    noneLocations.add(new Point(x, y));
+                    noneLocations.add(point);
                 }
-                else if(isDissatisfied(new Point(x, y))) {
-
+                else if(isDissatisfied(point, threshold)) {
+                    dissatisfiedLocations.add(point);
                 }
             }
         }
     }
 
-    private boolean isDissatisfied(Point p) {
-        return true;
+    private boolean isDissatisfied(Point p, double threshold) {
+        int nBlue = 0;
+        int nRed = 0;
+        
+        int x, y;
+        for(int xOffset = -1; xOffset <= 1; xOffset++) {
+            for(int yOffset = -1; yOffset <= 1; yOffset++) {
+                x = p.x + xOffset;
+                y = p.y + yOffset;
+                if(xOffset == 0 && yOffset == 0 || x < 0 || x >= world.length || y < 0 || y >= world[0].length)
+                    continue;
+                else if(world[x][y] == Actor.BLUE)
+                    nBlue++;
+                else if(world[x][y] == Actor.RED)
+                    nRed++;
+            }
+        }
+
+        int quota;
+        if(nBlue + nRed > 0) {
+            if (world[p.x][p.y] == Actor.BLUE)
+                quota = nBlue / (nBlue + nRed);
+            else
+                quota = nRed / (nBlue + nRed);
+
+            return quota >= threshold;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private void relocateDissatisfied(ArrayList<Point> noneLocations, ArrayList<Point> dissatisfiedLocations) {
+        int noneIndex;
+        Point nonePoint;
+        for(Point dissatisfied : dissatisfiedLocations) {
+            noneIndex = ThreadLocalRandom.current().nextInt(noneLocations.size());
+            nonePoint = noneLocations.get(noneIndex);
+
+            world[nonePoint.x][nonePoint.y] = world[dissatisfied.x][dissatisfied.y];
+            world[dissatisfied.x][dissatisfied.y] = Actor.NONE;
+            noneLocations.remove(noneIndex);
+        }
     }
 
     // ------- Testing -------------------------------------
