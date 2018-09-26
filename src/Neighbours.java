@@ -55,9 +55,6 @@ public class Neighbours extends Application {
         if(dissatisfiedLocations.size() != 0) {
             relocateDissatisfied(noneLocations, dissatisfiedLocations);
         }
-        else {
-            System.out.println("Everybody is satisfied");
-        }
     }
 
     // This method initializes the world variable with a random distribution of Actors
@@ -154,15 +151,7 @@ public class Neighbours extends Application {
             else {
                 quota = (double)nBlue / (double)(nBlue + nRed);
             }
-            if (quota < threshold) {
-                System.out.println(
-                        "Color: " + (world[p.y][p.x] == Actor.RED ? "red" : "blue")
-                                + " x: " + p.x
-                                + " y: " + p.y
-                                + " blue: " + nBlue
-                                + " red: " + nRed
-                                + " quota: " + quota);
-            }
+
             return quota < threshold;
         }
         else {
