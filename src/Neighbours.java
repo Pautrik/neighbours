@@ -33,13 +33,6 @@ public class Neighbours extends Application {
         BLUE, RED, NONE   // NONE used for empty locations
     }
 
-    // Enumeration type for the state of an Actor
-    enum State {
-        UNSATISFIED,
-        SATISFIED,
-        NA     // Not applicable (NA), used for NONEs
-    }
-
     // Below is the *only* accepted instance variable (i.e. variables outside any method)
     // This variable may *only* be used in methods init() and updateWorld()
     Actor[][] world;              // The world is a square matrix of Actors
@@ -52,8 +45,8 @@ public class Neighbours extends Application {
         ArrayList<Point> dissatisfiedLocations = new ArrayList<>();
 
         //Sends in Lists by reference to achieve multiple returns
-        setNoneAndDissatisfiedActorLocations(noneLocations, dissatisfiedLocations, threshold);
-        if(dissatisfiedLocations.size() != 0) {
+        setNonSatisfiedLocations(noneLocations, dissatisfiedLocations, threshold);
+        if(dissatisfiedLocations.size() > 0) {
             relocateDissatisfied(noneLocations, dissatisfiedLocations);
         }
     }
@@ -68,7 +61,7 @@ public class Neighbours extends Application {
         // %-distribution of RED and BLUE
         double[] dist = {0.25, 0.25};
         // Number of locations (places) in world (square)
-        int nLocations = 900;
+        int nLocations = 90000;
 
         populateWorld(nLocations, dist);
 
@@ -78,8 +71,6 @@ public class Neighbours extends Application {
 
 
     // ------- Methods ------------------
-
-    // TODO write the methods here, implement/test bottom up
 
     private void populateWorld(int nLocations, double[] dist) {
         int sideLength = (int)Math.sqrt(nLocations);
@@ -109,7 +100,9 @@ public class Neighbours extends Application {
     }
 
 
-    private void setNoneAndDissatisfiedActorLocations(ArrayList<Point> noneLocations, ArrayList<Point> dissatisfiedLocations, double threshold) {
+    private void setNonSatisfiedLocations(ArrayList<Point> noneLocations,
+                                          ArrayList<Point> dissatisfiedLocations,
+                                          double threshold) {
         for(int y = 0; y < world.length; y++) {
             for(int x = 0; x < world[0].length; x++) {
                 Point point = new Point(x, y);
@@ -124,8 +117,8 @@ public class Neighbours extends Application {
     }
 
     private boolean isDissatisfied(Point p, double threshold) {
-        int nBlue = 0;
-        int nRed = 0;
+        double nBlue = 0;
+        double nRed = 0;
 
         int x, y;
         for(int xOffset = -1; xOffset <= 1; xOffset++) {
@@ -134,7 +127,7 @@ public class Neighbours extends Application {
                 y = p.y + yOffset;
 
                 // Makes sure we don't count the center point or accesses a point outside of the world grid
-                if(xOffset == 0 && yOffset == 0 || x < 0 || x >= world[0].length || y < 0 || y >= world.length) {
+                if(xOffset == 0 && yOffset == 0 || isInsideBounds(x, y)) {
                     continue;
                 }
                 else if(world[y][x] == Actor.BLUE) {
@@ -149,17 +142,21 @@ public class Neighbours extends Application {
         if(nBlue + nRed > 0) { // Prevents divided by zero
             double quota;
             if (world[p.y][p.x] == Actor.RED) {
-                quota = (double)nRed / (double)(nBlue + nRed);
+                quota = nRed / (nBlue + nRed);
             }
             else {
-                quota = (double)nBlue / (double)(nBlue + nRed);
+                quota = nBlue / (nBlue + nRed);
             }
 
             return quota < threshold;
         }
         else {
-            return false;
+            return true;
         }
+    }
+
+    private boolean isInsideBounds(int x, int y) {
+        return x < 0 || x >= world[0].length || y < 0 || y >= world.length;
     }
 
     private void relocateDissatisfied(ArrayList<Point> noneLocations, ArrayList<Point> dissatisfiedLocations) {
@@ -192,8 +189,6 @@ public class Neighbours extends Application {
         };
         double th = 0.5;   // Simple threshold used for testing
         int size = testWorld.length;
-
-        // TODO test methods
 
         exit(0);
     }
